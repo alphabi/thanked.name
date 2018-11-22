@@ -1,0 +1,111 @@
+[hidden] {
+  display: none !important;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  max-width: 800px;
+  background-color: #210;
+  color: #ffe;
+  margin: auto;
+  font-family: sans-serif;
+}
+
+main {
+  min-height: 100%;
+  display: flex;
+  flex-flow: column;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.formline {
+  display: flex;
+  flex-flow: row;
+  margin: 3px;
+  align-items: center;
+}
+
+.formline label {
+  flex: 0 15%;
+  text-align: right;
+  padding-right: 5px;
+}
+
+input {
+  background-color: #fc9;
+  font-size: 24px;
+  border: 1px solid #210;
+  padding: 0 6px;
+}
+
+.formline input {
+  flex: 1;
+  margin-left: 3px;
+}
+
+.matchline {
+  margin: 5px 2px;
+  padding: 2px;
+  border: 1px solid #888;
+  border-radius: 1px;
+  justify-content: space-between;
+}
+
+.match-init {
+  background-color: #111;
+  color: #ddd;
+}
+
+.match-ambig {
+  background-color: #121;
+  color: #ded;
+}
+
+.match-likely {
+  background-color: #141;
+  color: #dfd;
+}
+
+.match-certain {
+  background-color: #080;
+  color: #dfd;
+}
+
+.match-none {
+  background-color: #200;
+  color: #edd;
+}
+
+#matchodds {
+  opacity: 0.5;
+}
+
+#matchbits {
+  flex: 0 0 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10px;
+}
+
+.matchbit {
+  font-family: monospace, monospace;
+  opacity: 0.5;
+}
+
+.matchbit.lit {
+  opacity: 0.8;
+}
+
+button {
+  text-align: center;
+  justify-content: center;
+  background-color: #b84;
+  color: #420;
+  border: none;
+  border-radius: 2px;
+  padding: 5px;
+}
