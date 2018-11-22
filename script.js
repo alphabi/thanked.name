@@ -20,6 +20,8 @@ const matchLine = document.getElementById('matchline');
 const matchStat = document.getElementById('matchstat');
 const matchOdds = document.getElementById('matchodds');
 const matchBits = document.getElementById('matchbits');
+const draftArea = document.getElementById('draftarea');
+const draftButton = document.getElementById('draft');
 
 const matchLineBaseClass = matchLine.className + ' ';
 function setMatchClass(cn) {
@@ -104,28 +106,135 @@ function setMatchStat(bitsMatching) {
 function updateTarget() {
   const targetName = superficial_latin(realName.value).trim();
   if (targetName) {
-    return getSha256Bits(targetName).then(setTarget);
+    return getSha256Bits(targetName).then(setTarget).then(updateSuggestions);
   } else {
     setTarget(null);
+    updateSuggestions();
+  }
+}
+
+function getMatchLength(thank) {
+  const bitspec = naive_alphabi(thank);
+  if (targetBits.slice(0, bitspec.length) == bitspec) {
+    return bitspec.length;
+  } else {
+    setMatchStat(0);
   }
 }
 
 function updateMatch() {
   const thank = superficial_latin(thankedName.value).trim();
   if (thank && targetBits) {
-    const bitspec = naive_alphabi(thank);
-    if (targetBits.slice(0,bitspec.length) == bitspec) {
-      setMatchStat(bitspec.length);
-    } else {
-      setMatchStat(0);
-    }
+    setMatchStat(getMatchLength(thank));
   } else {
     setMatchStat('init');
   }
 }
 
+function updateThanked() {
+  updateMatch();
+  updateSuggestions();
+}
+
+function titleCase(s) {
+  return s.slice(0,1).toUpperCase() + s.slice(1);
+}
+
+let bitdicts = null;
+
+function setupBitdictsFromWordlist(list) {
+  const lines = /\S+/g;
+  bitdicts = new Map();
+  let line;
+  while (line = lines.exec(list)) {
+    const word = superficial_latin(line[0]).trim();
+    const bits = naive_alphabi(word);
+    let bitdict = bitdicts.get(bits);
+    if (!bitdict) bitdicts.set(bits, bitdict = new Set());
+    bitdict.add(titleCase(word));
+  }
+  // remove the initial "Loading" element
+  draftArea.removeChild(draftArea.firstChild);
+  updateSuggestions();
+}
+
+function toggleDrafting() {
+  if (draftArea.hidden) {
+    // if we're turning draft mode on for the first time
+    if (!bitdicts) {
+      // Load the words we need
+      bitdicts = fetch(wordlistUrl)
+        .then(res => res.text()).then(setupBitdictsFromWordlist);
+    } else {
+    }
+  }
+  draftArea.hidden = !draftArea.hidden;
+
+  if (!draftArea.hidden) updateSuggestions();
+}
+
+draftButton.addEventListener('click', toggleDrafting);
+
+function addTargetWordToThanked(evt) {
+  if (evt.target.matches('.word')) {
+    const word = evt.target.textContent;
+    if (thankedName.value) {
+      thankedName.value += ' ' + word;
+    } else {
+      thankedName.value = word;
+    }
+    updateThanked();
+  }
+}
+
+draftArea.addEventListener('click', addTargetWordToThanked);
+
+function updateSuggestions() {
+  const thank = superficial_latin(thankedName.value).trim();
+  const matchLength = targetBits && getMatchLength(thank);
+
+  // don't show any suggestions when there's nothing to suggest,
+  // or the match is bad
+  if (!targetBits || matchLength == 0 && thank != '') {
+    const range = document.createRange();
+    range.selectNodeContents(draftArea);
+    range.deleteContents();
+
+  // When the match is OK and we are drafting
+  } else if (bitdicts && !bitdicts.then && !draftArea.hidden) {
+    // Gather words
+    const words = [];
+    let bitsearch = targetBits.slice(matchLength);
+    while (bitsearch) {
+      const bitdict = bitdicts.get(bitsearch);
+      if (bitdict) {
+        for (let word of bitdict) {
+          words[words.length] = word;
+        }
+      }
+      bitsearch = bitsearch.slice(0, -1);
+    }
+
+    for (let i = draftArea.children.length; i < words.length; ++i) {
+      // insert any necessary new entries
+      draftArea.appendChild(templateListWord.cloneNode());
+    }
+
+    if (draftArea.children.length > words.length) {
+      const range = document.createRange();
+      range.setStartAfter(draftArea.children[words.length]);
+      range.setEndAfter(draftArea.lastChild);
+      range.deleteContents();
+    }
+
+    for (let i = 0; i < words.length; ++i) {
+      draftArea.children[i].textContent = words[i];
+    }
+  }
+}
+
 realName.addEventListener('input', updateTarget);
-thankedName.addEventListener('input', updateMatch);
+thankedName.addEventListener('input', updateThanked);
 
 const supportsDigest = (crypto && crypto.subtle && crypto.subtle.digest);
 

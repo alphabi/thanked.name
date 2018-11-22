@@ -109,3 +109,21 @@ button {
   border-radius: 2px;
   padding: 5px;
 }
+
+#draftarea {
+  flex: 0;
+  height: 400px;
+  display: flex;
+  flex-flow: row wrap;
+  align-content: flex-start;
+  cursor: default;
+  overflow-y: scroll;
+}
+
+.word {
+  background-color: #d84;
+  color: #420;
+  border-radius: 2px;
+  padding: 2px 4px;
+  margin: 6px;
+}
